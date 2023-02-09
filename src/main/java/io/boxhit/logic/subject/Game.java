@@ -152,6 +152,7 @@ public class Game {
         Player player = new Player(playerID, name, color);
         randomPlayerPosition(player);
         players.add(player);
+        //TODO: finish or is it even needed?
     }
 
     /**
@@ -159,16 +160,6 @@ public class Game {
      * @param player the player
      */
     public void randomPlayerPosition(Player player){
-
-    }
-
-    /**
-     * handles the Attack of the player clientside
-     * @param player the player
-     */
-    public void handleAttackingPlayer(Player player){
-        if (player.getCoolDownForAttack() == 0) {
-            player.setCoolDownForAttack(8);
-        }
+        //TODO: finish or is it even needed?
     }
 }

@@ -37,4 +37,14 @@ public class GameLoopHandler {
         if (player.getCoolDownForAttack() == 0) return;
         player.setCoolDownForAttack(player.getCoolDownForAttack() - 1);
     }
+
+    /**
+     * handles the Attack of the player
+     * @param player the player
+     */
+    public void handleAttackingPlayer(Player player){
+        if (player.getCoolDownForAttack() == 0) {
+            player.setCoolDownForAttack(8);
+        }
+    }
 }
