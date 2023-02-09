@@ -1,7 +1,7 @@
-package io.boxhit10.SNAPSHOT.messages;
+package io.boxhit.socket.messages;
 
-import io.boxhit10.SNAPSHOT.websocket.Message;
-import io.boxhit10.SNAPSHOT.websocket.OutputMessage;
+import io.boxhit.socket.websocket.Message;
+import io.boxhit.socket.websocket.OutputMessage;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
@@ -20,7 +20,7 @@ public class MessageController {
      */
     @MessageMapping("/chat")
     @SendTo("/topic/messages")
-    public OutputMessage send(final Message message) throws Exception {
+    public OutputMessage send(final io.boxhit.socket.websocket.Message message) throws Exception {
         final String time = new SimpleDateFormat("HH:mm").format(new Date());
         return new OutputMessage(message.getFrom(), message.getText(), time);
     }

@@ -1,4 +1,4 @@
-package io.boxhit10.SNAPSHOT;
+package io.boxhit.SNAPSHOT;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

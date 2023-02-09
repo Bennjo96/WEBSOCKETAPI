@@ -1,4 +1,4 @@
-package io.boxhit10.SNAPSHOT;
+package io.boxhit.socket;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

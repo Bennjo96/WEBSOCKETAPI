@@ -1,4 +1,4 @@
-package io.boxhit10.SNAPSHOT.messages;
+package io.boxhit.socket.messages;
 
 public enum MessageModule {
 

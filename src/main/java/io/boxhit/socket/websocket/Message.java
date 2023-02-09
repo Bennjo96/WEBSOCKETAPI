@@ -1,4 +1,4 @@
-package io.boxhit10.SNAPSHOT.websocket;
+package io.boxhit.socket.websocket;
 
 public class Message {
 
