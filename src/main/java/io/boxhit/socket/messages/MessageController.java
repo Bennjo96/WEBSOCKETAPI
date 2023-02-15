@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.logging.Logger;
 
 @Controller
 public class MessageController {
@@ -18,18 +19,12 @@ public class MessageController {
      * @return
      * @throws Exception
      */
-    @MessageMapping("/chat")
+    @MessageMapping("/auth")
     @SendTo("/topic/messages")
     public OutputMessage send(final io.boxhit.socket.websocket.Message message) throws Exception {
+        Logger.getLogger("MessageController").info("Message received " + message.getModule() + " : " + message.getHeader() + " : " + message.getJson());
         final String time = new SimpleDateFormat("HH:mm").format(new Date());
-        return new OutputMessage(message.getFrom(), message.getText(), time);
-    }
-
-    @MessageMapping("/api")
-    @SendTo("/stream")
-    public OutputMessage send_(final Message message) throws Exception {
-        //message erhalten von user
-        return new OutputMessage(message.getFrom(), message.getText(), "irgendwas");
+        return new OutputMessage(message.getModule(), message.getHeader(), message.getJson());
     }
 
 }

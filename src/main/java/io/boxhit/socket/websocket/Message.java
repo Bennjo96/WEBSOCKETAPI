@@ -2,16 +2,19 @@ package io.boxhit.socket.websocket;
 
 public class Message {
 
-    private String from;
-    private String text;
+    private String module;
+    private String header;
+    private String json;
 
-
-    public String getFrom() {
-        return from;
+    public String getModule() {
+        return module;
     }
 
-    public String getText() {
-        return text;
+    public String getHeader() {
+        return header;
     }
 
+    public String getJson() {
+        return json;
+    }
 }
