@@ -2,38 +2,16 @@ package io.boxhit.socket.messages;
 
 public enum MessageModule {
 
-    /**
-     * Servers responses to client login requests
-     */
-    RESPONSE_LOGIN("loginResponse"),
-    /**
-     * Servers responses to client color change requests
-     */
-    RESPONSE_CHANGE_COLOR("changeColorResponse"),
-    /**
-     * Servers sends a list of all available game instances
-     */
-    MESSAGE_SERVER_LIST("serverListMessage"),
-    /**
-     * Servers sends a list of the leaderboard from a specific game instance
-     */
-    MESSAGE_LEADERBOARD("leaderboardMessage"),
-    /**
-     * Servers resonses to client's game join requests
-     */
-    RESPONSE_ACTION_JOIN_GAME("joinGameResponse"),
-    /**
-     * Servers sends a join game message to all other clients in the game
-     */
-    MESSAGE_ACTION_JOIN_GAME_OTHER("joinGameOtherResponse"),
-    /**
-     * Servers responses to client's game leave requests
-     */
-    RESPONSE_ACTION_LEAVE_GAME("leaveGameResponse"),
-    /**
-     * Server sends a ping message to all clients
-     */
-    MESSAGE_PING("ping");
+    SERVER_LIST("serverlist"),
+    AUTHORIZATION("authorization"),
+    ERROR("error"),
+    REQUEST_JOIN_GAME("joinGameRequest"),
+    REQUEST_GAME_DATA("gameDataRequest"),
+    ACTION_JOIN_GAME_DENIED("joinGameDenied"),
+    ACTION_JOIN_GAME("joinGame"),
+    ACTION_GAME_DATA("gameData"),
+    ACTION_JOIN_GAME_OTHER("joinGameOther"),
+    ACTION_LEAVE_GAME("leaveGame");
 
     private String module;
 
@@ -43,6 +21,15 @@ public enum MessageModule {
 
     public String getModule() {
         return module;
+    }
+
+    public static MessageModule fromText(String module) {
+        for (MessageModule m : values()) {
+            if (m.getModule().equalsIgnoreCase(module)) {
+                return m;
+            }
+        }
+        return null;
     }
 
 }

@@ -8,15 +8,9 @@ import org.springframework.web.socket.config.annotation.*;
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    //@Override
-    //public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    //    registry.addHandler(webSocketHandler(), "/websocket");
-    //}
-//
-    //@Bean
-    //public WebSocketHandler webSocketHandler(){
-    //    return new ServerWebSocketHandler();
-    //}
+    public static final String SUBSCRIBE_USER_PREFIX = "/private";
+    public static final String SUBSCRIBE_USER_REPLY = "/reply";
+    public static final String SUBSCRIBE_QUEUE = "/queue";
 
     /**
      * das sind die channels wo es hinsendet, bei euch müsst ihr es zu /stream ändern
@@ -26,6 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");
+        config.enableSimpleBroker(SUBSCRIBE_QUEUE, SUBSCRIBE_USER_REPLY);
     }
 
     /**
@@ -35,12 +30,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/protocol/v1");
+        registry.addEndpoint("/protocol/v1")
+                .setHandshakeHandler(new AssignPrincipalHandshakeHandler())
+                .setAllowedOrigins("*");
         registry.addEndpoint("/protocol/v1").withSockJS();
+
     }
-
-
-
-
-
 }

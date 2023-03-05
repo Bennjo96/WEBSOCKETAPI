@@ -1,44 +1,16 @@
 package io.boxhit.logic.subject;
 
 public class Player {
-
-    /**
-     * The player's id
-     */
-    private final int playerID;
-    /**
-     * The player's name
-     */
+    private final String playerID; //id from websocket connection
     private final String name;
-    /**
-     * The player's score
-     */
     private int score;
-    /**
-     * The player's color in hex
-     */
     private String hexColor;
-    /**
-     * The player's x position
-     */
     private int positionX;
-    /**
-     * The player's y position
-     */
     private int positionY;
-    /**
-     * If the player is alive
-     */
-    boolean isAlive;
-    /**
-     * The player's cooldown for attacking
-     */
     private int coolDownForAttack;
-
-    /**
-     * the Attack-Range
-     */
-    public final int ATTACK_RADIUS = 50;
+    public final int ATTACK_RADIUS = 30;
+    private State state;
+    private int currentGameID;
 
     /**
      * Create a new Player
@@ -46,12 +18,11 @@ public class Player {
      * @param name the name
      * @param hexColor the color in hex
      */
-    public Player(int playerID, String name, String hexColor) {
+    public Player(String playerID, String name, String hexColor) {
         this.playerID = playerID;
         this.name = name;
         this.score = 0;
         this.hexColor = hexColor;
-        this.isAlive = true;
         this.coolDownForAttack = 10;
     }
 
@@ -59,7 +30,7 @@ public class Player {
      * Get the player's id
      * @return the player's id
      */
-    public int getPlayerID() {
+    public String getPlayerID() {
         return playerID;
     }
 
@@ -104,14 +75,6 @@ public class Player {
     }
 
     /**
-     * Get if the player is alive
-     * @return if the player is alive
-     */
-    public boolean isAlive() {
-        return isAlive;
-    }
-
-    /**
      * Get the player's cooldown for attacking
      * @return the player's cooldown for attacking
      */
@@ -144,19 +107,29 @@ public class Player {
     }
 
     /**
-     * Set if the player is alive
-     * @param isAlive if the player is alive
-     */
-    public void setAlive(boolean isAlive) {
-        this.isAlive = isAlive;
-    }
-
-    /**
      * Set the player's cooldown for attacking
      * @param coolDownForAttack the new cooldown for attacking
      */
     public void setCoolDownForAttack(int coolDownForAttack) {
         this.coolDownForAttack = coolDownForAttack;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public Player setState(State state) {
+        this.state = state;
+        return this;
+    }
+
+    public int getCurrentGameID() {
+        return currentGameID;
+    }
+
+    public Player setCurrentGameID(int currentGameID) {
+        this.currentGameID = currentGameID;
+        return this;
     }
 
     /**
@@ -167,5 +140,13 @@ public class Player {
     public void move(int x, int y) {
         this.positionX = x;
         this.positionY = y;
+    }
+
+    public enum State {
+        IDLE, //player is either in the lobby, leaderboards, ...
+        PLAYING, //player is in a running game
+        DEAD, //player is dead
+        WAITING, //player is waiting for the game to start
+        JOINING  //player is joining a game - reserving a slot
     }
 }

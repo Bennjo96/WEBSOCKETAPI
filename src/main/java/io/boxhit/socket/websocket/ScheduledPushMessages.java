@@ -22,7 +22,7 @@ public class ScheduledPushMessages {
     @Scheduled(fixedDelay = 5000)
     public void sendMessage() {
         final String time = new SimpleDateFormat("HH:mm").format(new Date());
-        template.convertAndSend("/topic/pushmessages", new OutputMessage("Server", "Ping!", time));
+        //template.convertAndSend("/topic/pushmessages", new OutputMessageOld("Server", "Ping!", time));
     }
 
 }
