@@ -10,7 +10,13 @@ public class GameLogicHandler {
      * @param player the player
      * @param score the specific score
      */
-    private static void modifyScore(Player player, Score score) {
+    private void modifyScore(Player player, Score score) {
         player.setScore(player.getScore() + score.getScore());
+    }
+
+    public void checkPlayerMovement(Player player){
+        if(player.getState() == Player.State.PLAYING){
+
+        }
     }
 }

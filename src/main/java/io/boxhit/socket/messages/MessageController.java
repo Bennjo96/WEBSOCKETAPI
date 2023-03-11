@@ -183,6 +183,15 @@ public class MessageController {
                                 game.executePlayerAttack(player3);
                             }
                         }
+                        return null;
+                    case ACTION_GAME_FORCE_START:
+                        //TODO only specific users can force start
+                        io.boxhit.logic.subject.Player player4 = Controller.getPlayerInstanceHandler().getPlayer(principal.getName());
+                        if(player4 != null){
+                            int gameId1 = player4.getCurrentGameID();
+                            if(gameId1 != -1) Controller.getGameInstanceHandler().startGame(gameId1);
+                        }
+                        return null;
                 }
             }
         }

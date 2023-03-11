@@ -1,6 +1,7 @@
 package io.boxhit.logic.subject;
 
 import io.boxhit.logic.Controller;
+import io.boxhit.logic.score.Score;
 import io.boxhit.socket.messages.*;
 import jakarta.websocket.MessageHandler;
 import org.json.JSONArray;
@@ -108,6 +109,11 @@ public class Game {
 
     public void executePlayerAttack(Player player){
         HashMap<Player, Vector2D> players = getPlayersInAttackRadiusOfPlayer(player);
+        JSONObject dataInfo = new JSONObject();
+        JSONArray arrayInfo = new JSONArray();
+
+        ArrayList<Player> dyingPlayers = new ArrayList<>();
+
         JSONObject data = new JSONObject();
         JSONArray array = new JSONArray();
         for(Player p : players.keySet()){
@@ -118,13 +124,40 @@ public class Game {
             int y = (int) players.get(p).getY();
             obj.put("x", x);
             obj.put("y", y);
-            obj.put("damage", players.get(p).hard);
+            if(players.get(p).hard){
+                p.setHealth(p.getHealth() - 1);
+
+                if(p.getHealth() <= 0){
+                    p.setState(Player.State.DEAD);
+                    p.setScore(p.getScore() - Score.DEATH.getScore());
+                    p.setHealth(0);
+                    dyingPlayers.add(p);
+                }
+
+                JSONObject objDamage = new JSONObject();
+                objDamage.put("playerID", p.getPlayerID());
+                objDamage.put("health", p.getHealth());
+                objDamage.put("score", p.getScore());
+                arrayInfo.put(objDamage);
+            }
             array.put(obj);
             p.move(x, y);
         }
+        player.setScore(player.getScore()+players.size());
+
         data.put("players", array);
         data.put("attacker", player.getPlayerID());
+        data.put("attackerScore", player.getScore());
         broadcastGameEvent(MessageModule.ACTION_GAME_ATTACK_OTHER, data.toString());
+
+        dataInfo.put("players", arrayInfo);
+        broadcastGameEvent(MessageModule.ACTION_GAME_SCORE_HEALTH, dataInfo.toString());
+
+        for(Player p : dyingPlayers){
+            JSONObject obj = new JSONObject();
+            obj.put("playerID", p.getPlayerID());
+            broadcastGameEvent(MessageModule.ACTION_GAME_PLAYER_DIED, obj.toString());
+        }
     }
 
     /**
@@ -164,7 +197,7 @@ public class Game {
                 }else if (distance > p.ATTACK_RADIUS * 0.8) {
                     v3 = v3.mul(-0.3);
                 }else if (distance > p.ATTACK_RADIUS * 0.7) {
-                    v3 = v3.mul(-0.5);
+                    v3 = v3.mul(-0.5).setHard(true);
                 }else if (distance > p.ATTACK_RADIUS * 0.6) {
                     v3 = v3.mul(-0.7).setHard(true);
                 }else if (distance > p.ATTACK_RADIUS * 0.5) {
@@ -234,10 +267,8 @@ public class Game {
      * @param player the player
      */
     private boolean randomPlayerPosition(Player player){
-        player.setPositionX((int) (Math.random() * MAP_SIZE));
-        player.setPositionY((int) (Math.random() * MAP_SIZE));
-        //player.setPositionX(100);
-        //player.setPositionY(100);
+        player.setPositionX((int) (Math.random() * (MAP_SIZE-20))+10);
+        player.setPositionY((int) (Math.random() * (MAP_SIZE-20))+10);
         return true;
     }
 
@@ -379,6 +410,7 @@ public class Game {
         JSONObject data = new JSONObject();
         String message = infoMessage+" "+waitUntilStart;
         data.put("message", message.replace("-1",""));
+
         broadcastGameEvent(MessageModule.ACTION_GAME_INFO_MESSAGE, data.toString());
     }
 }

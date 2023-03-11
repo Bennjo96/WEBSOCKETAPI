@@ -11,6 +11,7 @@ public class Player {
     public final int ATTACK_RADIUS = 90;
     private State state;
     private int currentGameID;
+    private int health = 10;
 
     /**
      * Create a new Player
@@ -96,6 +97,15 @@ public class Player {
      */
     public void setPositionX(int positionX) {
         this.positionX = positionX;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public Player setHealth(int health) {
+        this.health = health;
+        return this;
     }
 
     /**

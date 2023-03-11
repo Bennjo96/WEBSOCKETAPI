@@ -103,6 +103,7 @@ public class GameInstanceHandler {
         data.put("playerID", id);
         player.move(x, y);
         System.out.println("Player moved to " + player.getPositionX() + " " + player.getPositionY());
+        Controller.getGameLogicHandler().checkPlayerMovement(player);
         game.broadcastGameEvent(MessageModule.ACTION_GAME_MOVE_OTHER, data.toString());
     }
 

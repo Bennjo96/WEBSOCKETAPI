@@ -33,7 +33,7 @@ public class GameProtectionHandler {
                 return false;
             }
         }
-        return true;
+        return Controller.getPlayerInstanceHandler().getPlayer(playerId).getState() == Player.State.PLAYING;
     }
 
     public void setLastMove(String playerId, Long time){

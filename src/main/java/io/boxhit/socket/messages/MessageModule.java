@@ -17,7 +17,10 @@ public enum MessageModule {
     ACTION_GAME_MOVE("gameMovePlayer"),
     ACTION_GAME_MOVE_OTHER("gameMovePlayerOther"),
     ACTION_GAME_ATTACK("gameAttack"),
-    ACTION_GAME_ATTACK_OTHER("gameAttackOther");
+    ACTION_GAME_ATTACK_OTHER("gameAttackOther"),
+    ACTION_GAME_SCORE_HEALTH("gameScoreHealth"),
+    ACTION_GAME_PLAYER_DIED("gamePlayerDied"),
+    ACTION_GAME_FORCE_START("gameForceStart");
 
     private String module;
 
