@@ -17,7 +17,7 @@ public class Game {
     private boolean isRunning;
 
     public final int MAX_PLAYERS = 5;
-    public final int MAP_SIZE = 380;
+    public final int MAP_SIZE = 350;
 
     public Game(int gameID, boolean forceStart, String name) {
         this.gameID = gameID;
@@ -55,6 +55,9 @@ public class Game {
      * @param player the player to remove
      */
     private void removePlayer(Player player) {
+        JSONObject data = new JSONObject();
+        data.put("playerID", player.getPlayerID());
+        broadcastGameEventExcludePlayer(MessageModule.ACTION_LEAVE_GAME_OTHER, data.toString(), player);
         players.remove(player);
     }
 
@@ -153,10 +156,14 @@ public class Game {
      */
     private void spawnPlayer(Player player) {
         if(randomPlayerPosition(player)){
-            String data = "";
+            JSONObject data = new JSONObject();
+            data.put("playerID", player.getPlayerID());
+            data.put("playerName", player.getName());
+            data.put("playerPosX", player.getPositionX());
+            data.put("playerPosY", player.getPositionY());
+            data.put("playerColor", player.getHexColor());
 
-            broadcastGameEventExcludePlayer(MessageModule.ACTION_JOIN_GAME_OTHER, data, player);
-
+            broadcastGameEventExcludePlayer(MessageModule.ACTION_JOIN_GAME_OTHER, data.toString(), player);
         }
     }
 
@@ -198,9 +205,14 @@ public class Game {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("playerID", p.getPlayerID());
             jsonObject.put("playerName", p.getName());
-            jsonObject.put("x", p.getPositionX());
-            jsonObject.put("y", p.getPositionY());
+            jsonObject.put("playerPosX", p.getPositionX());
+            jsonObject.put("playerPosY", p.getPositionY());
+            jsonObject.put("playerColor", p.getHexColor());
+            jsonObject.put("yourself", p.getPlayerID() == player.getPlayerID());
+            players.put(jsonObject);
         }
+
+        gameData.put("players", players);
 
         player.setState(Player.State.WAITING);
 
@@ -223,7 +235,7 @@ public class Game {
         OutputMessage outputMessage = new OutputMessage().setModule(messageModule.getModule());
         outputMessage.setHeader(MessageTemplates.getDefaultHeader());
         outputMessage.setJson(json);
-
+        System.out.println("Outgoing: BROADCAST (EX) "+outputMessage.toString());
         for(Player p : players){
             if(p.getPlayerID() == player.getPlayerID()) continue;
             String id = p.getPlayerID();

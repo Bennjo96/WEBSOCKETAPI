@@ -11,7 +11,8 @@ public enum MessageModule {
     ACTION_JOIN_GAME("joinGame"),
     ACTION_GAME_DATA("gameData"),
     ACTION_JOIN_GAME_OTHER("joinGameOther"),
-    ACTION_LEAVE_GAME("leaveGame");
+    ACTION_LEAVE_GAME("leaveGame"),
+    ACTION_LEAVE_GAME_OTHER("leaveGameOther");
 
     private String module;
 

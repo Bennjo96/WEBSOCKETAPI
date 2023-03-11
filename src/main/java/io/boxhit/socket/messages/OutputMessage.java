@@ -11,7 +11,7 @@ public class OutputMessage {
 
    private String module = "";
     private String header = "";
-    private String json = "";
+    private String json = "{}";
 
     public OutputMessage(){
     }

@@ -80,24 +80,19 @@ public class MessageController {
     @MessageMapping("/info")
     @SendTo("/topic/messages")
     public OutputMessage information(final OutputMessage message, Principal principal) throws Exception {
-        System.out.println("Incoming: "+message.toString());
-        //parse message.getHeader to json
+        //System.out.println("Incoming: "+message.toString());
         String header = message.getHeader();
         JSONObject object = new JSONObject(header);
         String token = object.getString("sessionToken");
         String username = UserManager.getUserNameByToken(token);
-        //System.out.println("Header: " + header);
-        //System.out.println("Token: " + token);
-        //System.out.println("Username: " + username);
         if (username != null) {
             MessageModule mm = MessageModule.fromText(message.getModule().replaceAll("\"", ""));
             if (mm != null) {
                 switch(mm) {
                     case SERVER_LIST:
-                        //send message to user
                         OutputMessage outputMessage = new OutputMessage().setModule(MessageModule.SERVER_LIST.getModule());
                         outputMessage.setJson(io.boxhit.logic.Controller.getGameInstanceHandler().getGameListJson());
-                        System.out.println("Outgoing: "+outputMessage.toString());
+                        //System.out.println("Outgoing: "+outputMessage.toString());
                         template.convertAndSendToUser(username, "/queue/reply", outputMessage);
                         return null;
                 }
@@ -111,14 +106,10 @@ public class MessageController {
     @SendTo("/topic/messages")
     public OutputMessage game(final OutputMessage message, Principal principal) throws Exception {
         System.out.println("Incoming: "+message.toString());
-        //parse message.getHeader to json
         String header = message.getHeader();
         JSONObject object = new JSONObject(header);
         String token = object.getString("sessionToken");
         String username = UserManager.getUserNameByToken(token);
-        //System.out.println("Header: " + header);
-        //System.out.println("Token: " + token);
-        //System.out.println("Username: " + username);
         if (username != null) {
             MessageModule mm = MessageModule.fromText(message.getModule().replaceAll("\"", ""));
             if (mm != null) {
@@ -127,15 +118,21 @@ public class MessageController {
                         //requesting to join a game
                         JSONObject jsonObject = new JSONObject(message.getJson());
                         int gameId = jsonObject.getInt("gameId");
-                        boolean success = io.boxhit.logic.Controller.getGameInstanceHandler().requestPlayerJoinGame(principal.getName(), gameId);
-
                         OutputMessage outputMessage;
-                        if(success){
-                            outputMessage = new OutputMessage().setModule(MessageModule.ACTION_JOIN_GAME.getModule());
+                        if(io.boxhit.logic.Controller.getGameProtectionHandler().isAllowedToJoin(principal.getName())){
+                            //is allowed to join (cooldown)
+                            boolean success = io.boxhit.logic.Controller.getGameInstanceHandler().requestPlayerJoinGame(principal.getName(), gameId);
+                            if(success){
+                                outputMessage = new OutputMessage().setModule(MessageModule.ACTION_JOIN_GAME.getModule());
+                            }else{
+                                outputMessage = new OutputMessage().setModule(MessageModule.ACTION_JOIN_GAME_DENIED.getModule());
+                            }
                         }else{
+                            //is not allowed to join (cooldown)
                             outputMessage = new OutputMessage().setModule(MessageModule.ACTION_JOIN_GAME_DENIED.getModule());
                         }
                         outputMessage.setHeader(MessageTemplates.getDefaultHeader());
+                        System.out.println("Outgoing: "+outputMessage.toString());
                         template.convertAndSendToUser(username, "/queue/reply", outputMessage);
                         return null;
                     case REQUEST_GAME_DATA:
@@ -147,16 +144,22 @@ public class MessageController {
                             String data = io.boxhit.logic.Controller.getGameInstanceHandler().playerRetrieveGameData(player, player.getCurrentGameID());
                             outputMessage2.setJson(data);
                         }
+                        System.out.println("Outgoing: "+outputMessage2.toString());
                         template.convertAndSendToUser(username, "/queue/reply", outputMessage2);
-                        break;
+                        return null;
                     case ACTION_LEAVE_GAME:
                         //player leaves game
+                        io.boxhit.logic.Controller.getGameProtectionHandler().setLastDisconnect(principal.getName(), System.currentTimeMillis());
                         io.boxhit.logic.subject.Player player2 = io.boxhit.logic.Controller.getPlayerInstanceHandler().getPlayer(principal.getName());
-                        if(player2.getCurrentGameID() != -1){
-                            //io.boxhit.logic.Controller.getGameInstanceHandler().playerLeaveGame(player2, player2.getCurrentGameID());
+                        //if(player2 != null) io.boxhit.logic.Controller.getPlayerInstanceHandler().prepareUnregisterPlayer(player2.getPlayerID());
+                        if(player2 != null){
+                            int gameId1 = player2.getCurrentGameID();
+                            if(gameId1 != -1) {
+                                io.boxhit.logic.Controller.getGameInstanceHandler().leaveGame(player2, gameId1);
+                                player2.setCurrentGameID(-1);
+                            }
                         }
-                        io.boxhit.logic.Controller.getPlayerInstanceHandler().prepareUnregisterPlayer(player2.getPlayerID());
-                        break;
+                        return null;
                 }
             }
         }
