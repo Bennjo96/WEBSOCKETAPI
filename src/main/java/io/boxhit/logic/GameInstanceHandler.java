@@ -2,7 +2,9 @@ package io.boxhit.logic;
 
 import io.boxhit.logic.subject.Game;
 import io.boxhit.logic.subject.Player;
+import io.boxhit.socket.messages.MessageModule;
 import jakarta.annotation.Nullable;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,12 +18,13 @@ public class GameInstanceHandler {
     //Data for client request
     private int dotLoadingCounter = 0;
 
+
     /**
      * The GameInstanceHandler constructor
      */
     public GameInstanceHandler() {
         this.games = new HashMap<>();
-        games.put(1, new Game(1, true, "cooler Server"));
+        games.put(1, new Game(1, false, "cooler Server"));
         games.put(2, new Game(2, false, "Hexle Server"));
         games.put(3, new Game(3, false, "BrosMC Server"));
     }
@@ -71,6 +74,36 @@ public class GameInstanceHandler {
         Game game = getGame(gameID);
         if(game != null) return game.retrieveGameData(player);
         return "{}";
+    }
+
+    public void movePlayer(String id, String direction){
+        Player player = Controller.getPlayerInstanceHandler().getPlayer(id);
+        if(player == null) return;
+        Game game = getGame(player.getCurrentGameID());
+        if(game == null) return;
+        int x = 0;
+        int y = 0;
+        switch (direction){
+            case "up":
+                y = -30;
+                break;
+            case "down":
+                y = 30;
+                break;
+            case "left":
+                x = -30;
+                break;
+            case "right":
+                x = 30;
+                break;
+        }
+        JSONObject data = new JSONObject();
+        data.put("x", x);
+        data.put("y", y);
+        data.put("playerID", id);
+        player.move(x, y);
+        System.out.println("Player moved to " + player.getPositionX() + " " + player.getPositionY());
+        game.broadcastGameEvent(MessageModule.ACTION_GAME_MOVE_OTHER, data.toString());
     }
 
 

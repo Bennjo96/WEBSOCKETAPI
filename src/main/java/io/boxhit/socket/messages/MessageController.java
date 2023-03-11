@@ -1,7 +1,9 @@
 package io.boxhit.socket.messages;
 
+import io.boxhit.logic.Controller;
 import io.boxhit.logic.GameInstanceHandler;
 import io.boxhit.logic.PlayerInstanceHandler;
+import io.boxhit.logic.subject.Game;
 import io.boxhit.socket.database.players.Player;
 import io.boxhit.socket.database.players.PlayerRepository;
 import io.boxhit.socket.users.UserManager;
@@ -10,11 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
 
-@Controller
+@org.springframework.stereotype.Controller
 public class MessageController {
 
     @Autowired
@@ -54,7 +55,7 @@ public class MessageController {
                         //template.convertAndSend("/topic/messages", outputMessage);
 
                         //create Player in Backend - GamePlayer
-                        io.boxhit.logic.Controller.getPlayerInstanceHandler().prepareRegisterPlayer(principal.getName(), player.getUsername(), player.getColor());
+                        Controller.getPlayerInstanceHandler().prepareRegisterPlayer(principal.getName(), player.getUsername(), player.getColor());
 
                         System.out.println("Outgoing: "+outputMessage.toString());
                         return outputMessage;
@@ -91,7 +92,7 @@ public class MessageController {
                 switch(mm) {
                     case SERVER_LIST:
                         OutputMessage outputMessage = new OutputMessage().setModule(MessageModule.SERVER_LIST.getModule());
-                        outputMessage.setJson(io.boxhit.logic.Controller.getGameInstanceHandler().getGameListJson());
+                        outputMessage.setJson(Controller.getGameInstanceHandler().getGameListJson());
                         //System.out.println("Outgoing: "+outputMessage.toString());
                         template.convertAndSendToUser(username, "/queue/reply", outputMessage);
                         return null;
@@ -119,9 +120,9 @@ public class MessageController {
                         JSONObject jsonObject = new JSONObject(message.getJson());
                         int gameId = jsonObject.getInt("gameId");
                         OutputMessage outputMessage;
-                        if(io.boxhit.logic.Controller.getGameProtectionHandler().isAllowedToJoin(principal.getName())){
+                        if(Controller.getGameProtectionHandler().isAllowedToJoin(principal.getName())){
                             //is allowed to join (cooldown)
-                            boolean success = io.boxhit.logic.Controller.getGameInstanceHandler().requestPlayerJoinGame(principal.getName(), gameId);
+                            boolean success = Controller.getGameInstanceHandler().requestPlayerJoinGame(principal.getName(), gameId);
                             if(success){
                                 outputMessage = new OutputMessage().setModule(MessageModule.ACTION_JOIN_GAME.getModule());
                             }else{
@@ -137,11 +138,11 @@ public class MessageController {
                         return null;
                     case REQUEST_GAME_DATA:
                         //requesting game data
-                        io.boxhit.logic.subject.Player player = io.boxhit.logic.Controller.getPlayerInstanceHandler().getPlayer(principal.getName());
+                        io.boxhit.logic.subject.Player player = Controller.getPlayerInstanceHandler().getPlayer(principal.getName());
                         OutputMessage outputMessage2 = new OutputMessage().setModule(MessageModule.ACTION_GAME_DATA.getModule());
                         outputMessage2.setHeader(MessageTemplates.getDefaultHeader());
                         if(player != null){
-                            String data = io.boxhit.logic.Controller.getGameInstanceHandler().playerRetrieveGameData(player, player.getCurrentGameID());
+                            String data = Controller.getGameInstanceHandler().playerRetrieveGameData(player, player.getCurrentGameID());
                             outputMessage2.setJson(data);
                         }
                         System.out.println("Outgoing: "+outputMessage2.toString());
@@ -149,17 +150,39 @@ public class MessageController {
                         return null;
                     case ACTION_LEAVE_GAME:
                         //player leaves game
-                        io.boxhit.logic.Controller.getGameProtectionHandler().setLastDisconnect(principal.getName(), System.currentTimeMillis());
-                        io.boxhit.logic.subject.Player player2 = io.boxhit.logic.Controller.getPlayerInstanceHandler().getPlayer(principal.getName());
-                        //if(player2 != null) io.boxhit.logic.Controller.getPlayerInstanceHandler().prepareUnregisterPlayer(player2.getPlayerID());
+                        Controller.getGameProtectionHandler().setLastDisconnect(principal.getName(), System.currentTimeMillis());
+                        io.boxhit.logic.subject.Player player2 = Controller.getPlayerInstanceHandler().getPlayer(principal.getName());
                         if(player2 != null){
                             int gameId1 = player2.getCurrentGameID();
                             if(gameId1 != -1) {
-                                io.boxhit.logic.Controller.getGameInstanceHandler().leaveGame(player2, gameId1);
+                                Controller.getGameInstanceHandler().leaveGame(player2, gameId1);
                                 player2.setCurrentGameID(-1);
                             }
                         }
                         return null;
+                    case ACTION_GAME_MOVE:
+                        if(!Controller.getGameProtectionHandler().isAllowedToMove(principal.getName())) {
+                            return null;
+                        }
+                        Controller.getGameProtectionHandler().setLastMove(principal.getName(), System.currentTimeMillis());
+
+                        JSONObject jsonObject1 = new JSONObject(message.getJson());
+                        String direction = jsonObject1.getString("direction");
+                        Controller.getGameInstanceHandler().movePlayer(principal.getName(), direction);
+                        return null;
+                    case ACTION_GAME_ATTACK:
+                        io.boxhit.logic.subject.Player player3 = Controller.getPlayerInstanceHandler().getPlayer(principal.getName());
+                        if(!Controller.getGameProtectionHandler().isAllowedToAttack(principal.getName())){
+                            return null;
+                        }
+                        Controller.getGameProtectionHandler().setLastAttack(principal.getName(), System.currentTimeMillis());
+                        if(player3 != null){
+                            int gameId1 = player3.getCurrentGameID();
+                            if(gameId1 != -1) {
+                                Game game = Controller.getGameInstanceHandler().getGame(gameId1);
+                                game.executePlayerAttack(player3);
+                            }
+                        }
                 }
             }
         }

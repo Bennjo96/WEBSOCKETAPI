@@ -12,7 +12,12 @@ public enum MessageModule {
     ACTION_GAME_DATA("gameData"),
     ACTION_JOIN_GAME_OTHER("joinGameOther"),
     ACTION_LEAVE_GAME("leaveGame"),
-    ACTION_LEAVE_GAME_OTHER("leaveGameOther");
+    ACTION_LEAVE_GAME_OTHER("leaveGameOther"),
+    ACTION_GAME_INFO_MESSAGE("gameInfoMessage"),
+    ACTION_GAME_MOVE("gameMovePlayer"),
+    ACTION_GAME_MOVE_OTHER("gameMovePlayerOther"),
+    ACTION_GAME_ATTACK("gameAttack"),
+    ACTION_GAME_ATTACK_OTHER("gameAttackOther");
 
     private String module;
 

@@ -8,7 +8,7 @@ public class Player {
     private int positionX;
     private int positionY;
     private int coolDownForAttack;
-    public final int ATTACK_RADIUS = 30;
+    public final int ATTACK_RADIUS = 90;
     private State state;
     private int currentGameID;
 
@@ -138,8 +138,8 @@ public class Player {
      * @param y the y position
      */
     public void move(int x, int y) {
-        this.positionX = x;
-        this.positionY = y;
+        this.positionX = this.positionX+x;
+        this.positionY = this.positionY+y;
     }
 
     public enum State {
