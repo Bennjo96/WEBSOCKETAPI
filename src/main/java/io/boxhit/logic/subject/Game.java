@@ -1,29 +1,29 @@
 package io.boxhit.logic.subject;
 
+import io.boxhit.socket.messages.MessageModule;
+import io.boxhit.socket.messages.MessageSender;
+import io.boxhit.socket.messages.MessageTemplates;
+import io.boxhit.socket.messages.OutputMessage;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 public class Game {
-
-    /**
-     * The game's id
-     */
     private final int gameID;
-    /**
-     * The game's players
-     */
     private ArrayList<Player> players;
-    /**
-     * The game's mapsize
-     */
-    private final int map_size;
+    private final String gameName;
 
     private boolean isRunning;
 
-    public Game(int gameID, boolean forceStart) {
+    public final int MAX_PLAYERS = 5;
+    public final int MAP_SIZE = 350;
+
+    public Game(int gameID, boolean forceStart, String name) {
         this.gameID = gameID;
         this.players = new ArrayList<>();
-        this.map_size = 650;
         this.isRunning = forceStart;
+        this.gameName = name;
     }
 
     /**
@@ -43,18 +43,10 @@ public class Game {
     }
 
     /**
-     * Get the game's mapsize
-     * @return the game's mapsize
-     */
-    public int getMap_size() {
-        return map_size;
-    }
-
-    /**
      * Get the game's canvas
      * @return the game's canvas
      */
-    public void addPlayer(Player player) {
+    private void addPlayer(Player player) {
         players.add(player);
     }
 
@@ -62,7 +54,10 @@ public class Game {
      * remove a Player from the game
      * @param player the player to remove
      */
-    public void removePlayer(Player player) {
+    private void removePlayer(Player player) {
+        JSONObject data = new JSONObject();
+        data.put("playerID", player.getPlayerID());
+        broadcastGameEventExcludePlayer(MessageModule.ACTION_LEAVE_GAME_OTHER, data.toString(), player);
         players.remove(player);
     }
 
@@ -82,6 +77,10 @@ public class Game {
         isRunning = running;
     }
 
+    public String getGameName() {
+        return gameName;
+    }
+
     /**
      * gets all alive players
      * @return the alive players
@@ -89,9 +88,7 @@ public class Game {
     public ArrayList<Player> getAlivePlayers() {
         ArrayList<Player> alivePlayers = new ArrayList<>();
         for (Player player : players) {
-            if (player.isAlive()) {
-                alivePlayers.add(player);
-            }
+            if (player.getState() == Player.State.PLAYING) addPlayer(player);
         }
         return alivePlayers;
     }
@@ -103,9 +100,7 @@ public class Game {
     public ArrayList<Player> getDeadPlayers() {
         ArrayList<Player> deadPlayers = new ArrayList<>();
         for (Player player : players) {
-            if (!player.isAlive()) {
-                deadPlayers.add(player);
-            }
+               if (player.getState() == Player.State.DEAD) addPlayer(player);
         }
         return deadPlayers;
     }
@@ -115,14 +110,13 @@ public class Game {
      * @param playerID the playerID
      * @return the players in the radius
      */
-    public ArrayList<Player> getPlayersInAttackRadiusOfPlayer(int playerID) {
+    public ArrayList<Player> getPlayersInAttackRadiusOfPlayer(String playerID) {
         ArrayList<Player> playersInRadius = new ArrayList<>();
         for (Player player : players) {
             if (player.getPlayerID() == playerID) continue;
-            if (player.isAlive()) {
-                if (Math.sqrt(Math.pow(player.getPositionX() - getPlayerByID(playerID).getPositionX(), 2) + Math.pow(player.getPositionY() - getPlayerByID(playerID).getPositionY(), 2)) <= player.ATTACK_RADIUS) {
-                    playersInRadius.add(player);
-                }
+            if (player.getState() == Player.State.DEAD) continue;
+            if (Math.sqrt(Math.pow(player.getPositionX() - getPlayerByID(playerID).getPositionX(), 2) + Math.pow(player.getPositionY() - getPlayerByID(playerID).getPositionY(), 2)) <= player.ATTACK_RADIUS) {
+                playersInRadius.add(player);
             }
         }
         return playersInRadius;
@@ -133,7 +127,7 @@ public class Game {
      * @param playerID the playerID
      * @return the player
      */
-    public Player getPlayerByID(int playerID) {
+    public Player getPlayerByID(String playerID) {
         for (Player player : players) {
             if (player.getPlayerID() == playerID) {
                 return player;
@@ -142,24 +136,111 @@ public class Game {
         return null;
     }
 
+    public void leaveGame(Player player){
+        despawnPlayer(player, (player.getState() == Player.State.WAITING));
+        removePlayer(player);
+    }
+
+    public void despawnPlayer(Player player, boolean die){
+        if(player.getState() == Player.State.PLAYING){
+            if(die) player.setState(Player.State.DEAD);
+            player.setPositionX(-1);
+            player.setPositionY(-1);
+            //broadcastGameEventExcludePlayer(MessageModule.ACTION_DESPAWN_PLAYER, player.getPlayerID(), player);
+        }
+    }
+
     /**
      * spawns a player
-     * @param playerID the playerID
-     * @param name the name
-     * @param color the color
+     * @param player the player
      */
-    public void spawnPlayer(int playerID, String name, String color) {
-        Player player = new Player(playerID, name, color);
-        randomPlayerPosition(player);
-        players.add(player);
-        //TODO: finish or is it even needed?
+    private void spawnPlayer(Player player) {
+        if(randomPlayerPosition(player)){
+            JSONObject data = new JSONObject();
+            data.put("playerID", player.getPlayerID());
+            data.put("playerName", player.getName());
+            data.put("playerPosX", player.getPositionX());
+            data.put("playerPosY", player.getPositionY());
+            data.put("playerColor", player.getHexColor());
+
+            broadcastGameEventExcludePlayer(MessageModule.ACTION_JOIN_GAME_OTHER, data.toString(), player);
+        }
     }
 
     /**
      * sets a random position for a player
      * @param player the player
      */
-    public void randomPlayerPosition(Player player){
-        //TODO: finish or is it even needed?
+    private boolean randomPlayerPosition(Player player){
+        player.setPositionX((int) (Math.random() * MAP_SIZE));
+        player.setPositionY((int) (Math.random() * MAP_SIZE));
+        return true;
+    }
+
+    public void startGame(){
+        //change player state to playing
+        for(Player player : players){
+            if(player.getState() == Player.State.WAITING) player.setState(Player.State.PLAYING);
+        }
+    }
+
+    public boolean requestPlayerJoinGame(Player player){
+        if(isRunning) return false;
+        if(players.size() >= MAX_PLAYERS) return false;
+        player.setState(Player.State.JOINING);
+        addPlayer(player);
+        spawnPlayer(player);
+        return true;
+    }
+
+    public String retrieveGameData(Player player){
+        JSONObject gameData = new JSONObject();
+        gameData.put("gameID", getGameID());
+        gameData.put("gameName", getGameName());
+        gameData.put("mapSize", MAP_SIZE);
+
+        JSONArray players = new JSONArray();
+
+        for(Player p : getPlayers()){
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("playerID", p.getPlayerID());
+            jsonObject.put("playerName", p.getName());
+            jsonObject.put("playerPosX", p.getPositionX());
+            jsonObject.put("playerPosY", p.getPositionY());
+            jsonObject.put("playerColor", p.getHexColor());
+            jsonObject.put("yourself", p.getPlayerID() == player.getPlayerID());
+            players.put(jsonObject);
+        }
+
+        gameData.put("players", players);
+
+        player.setState(Player.State.WAITING);
+
+        return gameData.toString();
+    }
+
+    public void broadcastGameEvent(MessageModule messageModule, String json){
+        OutputMessage outputMessage = new OutputMessage().setModule(messageModule.getModule());
+        outputMessage.setHeader(MessageTemplates.getDefaultHeader());
+        outputMessage.setJson(json);
+
+        for(Player player : players){
+            String id = player.getPlayerID();
+            MessageSender ms = new MessageSender();
+            ms.send(outputMessage,id);
+        }
+    }
+
+    public void broadcastGameEventExcludePlayer(MessageModule messageModule, String json, Player player){
+        OutputMessage outputMessage = new OutputMessage().setModule(messageModule.getModule());
+        outputMessage.setHeader(MessageTemplates.getDefaultHeader());
+        outputMessage.setJson(json);
+        System.out.println("Outgoing: BROADCAST (EX) "+outputMessage.toString());
+        for(Player p : players){
+            if(p.getPlayerID() == player.getPlayerID()) continue;
+            String id = p.getPlayerID();
+            MessageSender ms = new MessageSender();
+            ms.send(outputMessage,id);
+        }
     }
 }
