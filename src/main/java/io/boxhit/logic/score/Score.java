@@ -4,8 +4,8 @@ public enum Score {
     ATTACK(5),
     KILL(10),
     DEATH(-10),
-    WIN(100),
-    LOSE(-100);
+    WIN(50),
+    DRAW(10);
 
     private final int score;
 
