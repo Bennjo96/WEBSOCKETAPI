@@ -154,10 +154,14 @@ public class Game {
         broadcastGameEvent(MessageModule.ACTION_GAME_SCORE_HEALTH, dataInfo.toString());
 
         for(Player p : dyingPlayers){
-            JSONObject obj = new JSONObject();
-            obj.put("playerID", p.getPlayerID());
-            broadcastGameEvent(MessageModule.ACTION_GAME_PLAYER_DIED, obj.toString());
+            playerDies(p);
         }
+    }
+
+    public void playerDies(Player p){
+        JSONObject obj = new JSONObject();
+        obj.put("playerID", p.getPlayerID());
+        broadcastGameEvent(MessageModule.ACTION_GAME_PLAYER_DIED, obj.toString());
     }
 
     /**
