@@ -11,4 +11,6 @@ public interface PlayLogRepositoryCustom {
 
     List<PlayLog> getPlayLogFromPlayerId(Long playerId);
 
+    void insertPlayLog(PlayLog playLog);
+
 }

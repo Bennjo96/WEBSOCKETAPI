@@ -126,6 +126,8 @@ public class MessageController {
                         outputMessage2.setJson(jsonArray.toString());
 
                         template.convertAndSendToUser(username, "/queue/reply", outputMessage2);
+
+                        System.out.println("Outgoing: "+outputMessage2.toString());
                         return null;
                 }
             }
@@ -183,20 +185,24 @@ public class MessageController {
                         //player leaves game
                         Controller.getGameProtectionHandler().setLastDisconnect(principal.getName(), System.currentTimeMillis());
                         io.boxhit.logic.subject.Player player2 = Controller.getPlayerInstanceHandler().getPlayer(principal.getName());
+                        int maxPlayers = 0;
                         if(player2 != null){
+                            Player player1 = playerRepository.findPlayerByUsername(player2.getName());
                             int gameId1 = player2.getCurrentGameID();
                             if(gameId1 != -1) {
+
+                                Game game = Controller.getGameInstanceHandler().getGame(gameId1);
+                                maxPlayers = game.maxPlayersInGame;
                                 Controller.getGameInstanceHandler().leaveGame(player2, gameId1);
                                 player2.setCurrentGameID(-1);
+                                PlayLog pl = new PlayLog();
+                                pl.setLastplayed(System.currentTimeMillis());
+                                pl.setPlayercount(maxPlayers);
+                                pl.setScore(player2.getScore());
+                                pl.setUserid(player1.getId());
+                                playLogRepository.insertPlayLog(pl);
                             }
                         }
-
-                        PlayLog pl = new PlayLog();
-                        pl.setLastplayed(new Timestamp(System.currentTimeMillis()));
-                        pl.setPlayercount(1);
-                        pl.setScore(1);
-                        pl.setUserid(1L);
-                        playLogRepository.save(pl);
                         return null;
                     case ACTION_GAME_MOVE:
                         if(!Controller.getGameProtectionHandler().isAllowedToMove(principal.getName())) {

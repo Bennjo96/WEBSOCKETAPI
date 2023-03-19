@@ -22,6 +22,8 @@ public class Game {
     public String infoMessage = "Waiting for players...";
     public int waitUntilStart = 60;
 
+    public int maxPlayersInGame = 0;
+
     private Timer timer;
 
     public Game(int gameID, boolean forceStart, String name) {
@@ -29,6 +31,7 @@ public class Game {
         this.players = new ArrayList<>();
         this.isRunning = forceStart;
         this.gameName = name;
+        this.maxPlayersInGame = 0;
 
         timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -88,6 +91,7 @@ public class Game {
      */
     public void setRunning(boolean running) {
         isRunning = running;
+        maxPlayersInGame = players.size();
         updateInfoMessage();
     }
 

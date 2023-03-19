@@ -20,7 +20,7 @@ public class PlayLog {
     private int score;
 
     @Column()
-    private Timestamp lastplayed;
+    private Long lastplayed;
 
     public Long getId() {
         return id;
@@ -38,7 +38,7 @@ public class PlayLog {
         return score;
     }
 
-    public Timestamp getLastplayed() {
+    public Long getLastplayed() {
         return lastplayed;
     }
 
@@ -62,7 +62,7 @@ public class PlayLog {
         return this;
     }
 
-    public PlayLog setLastplayed(Timestamp lastplayed) {
+    public PlayLog setLastplayed(Long lastplayed) {
         this.lastplayed = lastplayed;
         return this;
     }
