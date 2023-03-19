@@ -11,8 +11,14 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
     @Query("SELECT p FROM Player p WHERE p.sessionToken = ?1")
     Player findPlayerBySessionToken(String sessionToken);
 
+    @Query("SELECT p FROM Player p WHERE p.username = ?1")
+    Player findPlayerByUsername(String username);
+
+    @Transactional
     @Modifying
     @Query("UPDATE Player p SET p.sessionToken = ?1 WHERE p.id = ?2")
-    void updatePlayerSessionToken(@Param("sessionToken") String sessionToken, @Param("id") Long id);
+    void updatePlayerSessionToken(String sessionToken, Long id);
+
+
 
 }

@@ -1,12 +1,13 @@
 package io.boxhit.socket.messages;
 
 import io.boxhit.logic.Controller;
-import io.boxhit.logic.GameInstanceHandler;
-import io.boxhit.logic.PlayerInstanceHandler;
 import io.boxhit.logic.subject.Game;
 import io.boxhit.socket.database.players.Player;
 import io.boxhit.socket.database.players.PlayerRepository;
+import io.boxhit.socket.database.playlog.PlayLog;
+import io.boxhit.socket.database.playlog.PlayLogRepository;
 import io.boxhit.socket.users.UserManager;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -14,12 +15,18 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.security.Principal;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.List;
 
 @org.springframework.stereotype.Controller
 public class MessageController {
 
     @Autowired
     private PlayerRepository playerRepository;
+
+    @Autowired
+    private PlayLogRepository playLogRepository;
 
     @Autowired
     public SimpMessagingTemplate template;
@@ -56,6 +63,8 @@ public class MessageController {
 
                         //create Player in Backend - GamePlayer
                         Controller.getPlayerInstanceHandler().prepareRegisterPlayer(principal.getName(), player.getUsername(), player.getColor());
+
+                        playerRepository.updatePlayerSessionToken(UserManager.getUserToken(principal), player.getId());
 
                         System.out.println("Outgoing: "+outputMessage.toString());
                         return outputMessage;
@@ -95,6 +104,28 @@ public class MessageController {
                         outputMessage.setJson(Controller.getGameInstanceHandler().getGameListJson());
                         //System.out.println("Outgoing: "+outputMessage.toString());
                         template.convertAndSendToUser(username, "/queue/reply", outputMessage);
+                        return null;
+                    case ACTION_PLAYLOG_INFO_REQUEST:
+                        OutputMessage outputMessage2 = new OutputMessage().setModule(MessageModule.ACTION_PLAYLOG_INFO.getModule());
+
+                        //String username = UserManager.getUserNameByToken(token);
+
+                        System.out.println("Username: "+username);
+                        System.out.println("Token: "+token);
+                        //String token = UserManager.getUserToken(principal);
+
+                        List<PlayLog> playLogs = playLogRepository.getPlayLogFromPlayerId(5L);
+
+                        JSONArray jsonArray = new JSONArray();
+                        for(PlayLog playLog : playLogs){
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("date", playLog.getLastplayed());
+                            jsonObject.put("info", playLog.getScore()+":"+playLog.getPlayercount());
+                            jsonArray.put(jsonObject);
+                        }
+                        outputMessage2.setJson(jsonArray.toString());
+
+                        template.convertAndSendToUser(username, "/queue/reply", outputMessage2);
                         return null;
                 }
             }
@@ -159,6 +190,13 @@ public class MessageController {
                                 player2.setCurrentGameID(-1);
                             }
                         }
+
+                        PlayLog pl = new PlayLog();
+                        pl.setLastplayed(new Timestamp(System.currentTimeMillis()));
+                        pl.setPlayercount(1);
+                        pl.setScore(1);
+                        pl.setUserid(1L);
+                        playLogRepository.save(pl);
                         return null;
                     case ACTION_GAME_MOVE:
                         if(!Controller.getGameProtectionHandler().isAllowedToMove(principal.getName())) {

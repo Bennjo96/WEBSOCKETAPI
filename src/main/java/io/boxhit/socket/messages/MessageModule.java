@@ -20,7 +20,10 @@ public enum MessageModule {
     ACTION_GAME_ATTACK_OTHER("gameAttackOther"),
     ACTION_GAME_SCORE_HEALTH("gameScoreHealth"),
     ACTION_GAME_PLAYER_DIED("gamePlayerDied"),
-    ACTION_GAME_FORCE_START("gameForceStart");
+    ACTION_GAME_FORCE_START("gameForceStart"),
+    ACTION_PLAYLOG_INFO("playlogInfo"),
+    ACTION_PLAYLOG_INFO_REQUEST("playlogInfoRequest");
+
 
     private String module;
 

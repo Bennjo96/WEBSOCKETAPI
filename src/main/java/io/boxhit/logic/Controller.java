@@ -1,5 +1,8 @@
 package io.boxhit.logic;
 
+import io.boxhit.socket.database.playlog.PlayLogRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
 public class Controller {
 
     private static GameInstanceHandler gameInstanceHandler;
