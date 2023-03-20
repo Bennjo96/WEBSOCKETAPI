@@ -8,10 +8,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Game {
     private final int gameID;
-    private ArrayList<Player> players;
+    private ConcurrentHashMap<String, Player> players;
     private final String gameName;
 
     private boolean isRunning;
@@ -28,7 +29,7 @@ public class Game {
 
     public Game(int gameID, boolean forceStart, String name) {
         this.gameID = gameID;
-        this.players = new ArrayList<>();
+        this.players = new ConcurrentHashMap<>();
         this.isRunning = forceStart;
         this.gameName = name;
         this.maxPlayersInGame = 0;
@@ -55,7 +56,7 @@ public class Game {
      * @return the game's players
      */
     public ArrayList<Player> getPlayers() {
-        return players;
+        return new ArrayList<>(players.values());
     }
 
     /**
@@ -63,7 +64,7 @@ public class Game {
      * @return the game's canvas
      */
     private void addPlayer(Player player) {
-        players.add(player);
+        players.put(player.getPlayerID(), player);
     }
 
     /**
@@ -105,7 +106,7 @@ public class Game {
      */
     public ArrayList<Player> getAlivePlayers() {
         ArrayList<Player> alivePlayers = new ArrayList<>();
-        for (Player player : players) {
+        for (Player player : players.values()) {
             if (player.getState() == Player.State.PLAYING) addPlayer(player);
         }
         return alivePlayers;
@@ -146,6 +147,7 @@ public class Game {
             }
             array.put(obj);
             p.move(x, y);
+            Controller.getGameLogicHandler().checkPlayerMovement(player, this);
         }
         player.setScore(player.getScore()+players.size());
 
@@ -174,7 +176,7 @@ public class Game {
      */
     public ArrayList<Player> getDeadPlayers() {
         ArrayList<Player> deadPlayers = new ArrayList<>();
-        for (Player player : players) {
+        for (Player player : players.values()) {
                if (player.getState() == Player.State.DEAD) addPlayer(player);
         }
         return deadPlayers;
@@ -188,7 +190,7 @@ public class Game {
     public HashMap<Player, Vector2D> getPlayersInAttackRadiusOfPlayer(Player player) {
         HashMap<Player, Vector2D> playersInRadius = new HashMap();
         Vector2D v1 = new Vector2D(player.getPositionX(), player.getPositionY());
-        for (Player p : players) {
+        for (Player p : players.values()) {
             if (p.getPlayerID() == player.getPlayerID()) continue;
             if (p.getState() == Player.State.DEAD) continue;
             Vector2D v2 = new Vector2D(p.getPositionX(), p.getPositionY());
@@ -230,7 +232,7 @@ public class Game {
      * @return the player
      */
     public Player getPlayerByID(String playerID) {
-        for (Player player : players) {
+        for (Player player : players.values()) {
             if (player.getPlayerID() == playerID) {
                 return player;
             }
@@ -282,7 +284,7 @@ public class Game {
 
     public void startGame(){
         //change player state to playing
-        for(Player player : players){
+        for(Player player : players.values()){
             if(player.getState() == Player.State.WAITING) player.setState(Player.State.PLAYING);
         }
 
@@ -332,7 +334,7 @@ public class Game {
             System.out.println("Outgoing: BROADCAST "+outputMessage.toString());
         }
 
-        for(Player player : players){
+        for(Player player : players.values()){
             String id = player.getPlayerID();
             MessageSender ms = new MessageSender();
             ms.send(outputMessage,id);
@@ -344,7 +346,7 @@ public class Game {
         outputMessage.setHeader(MessageTemplates.getDefaultHeader());
         outputMessage.setJson(json);
         System.out.println("Outgoing: BROADCAST (EX) "+outputMessage.toString());
-        for(Player p : players){
+        for(Player p : players.values()){
             if(p.getPlayerID() == player.getPlayerID()) continue;
             String id = p.getPlayerID();
             MessageSender ms = new MessageSender();
@@ -395,11 +397,18 @@ public class Game {
 
     private void endGame(){
         isRunning = false;
-        for(Player player : players){
+        for(Player player : players.values()){
             player.setState(Player.State.WAITING);
         }
         waitUntilStart = 60;
         updateInfoMessage();
+    }
+
+    private void winner(Player p){
+        endGame();
+        for (Player player : players.values()){
+            player.setHealth(10);
+        }
     }
 
     private synchronized void secondlyCalled(){
@@ -412,6 +421,11 @@ public class Game {
         }
 
         if(players.size() == 0) endGame();
+        if (isRunning){
+            if (getAlivePlayers().size() == 1){
+                winner(getAlivePlayers().get(0));
+            }
+        }
 
 
         //send game Info Message
