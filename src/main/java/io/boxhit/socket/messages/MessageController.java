@@ -52,6 +52,15 @@ public class MessageController {
                     OutputMessage outputMessage = new OutputMessage().setModule(MessageModule.AUTHORIZATION.getModule());
                     //check if player is not null
                     if(player != null){
+                        if(Controller.getPlayerInstanceHandler().isAlreadyRegistered(player.getId()+"")){
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("sessionToken", "Already logged in on another device.");
+                            outputMessage.setJson(jsonObject.toString());
+                            System.out.println("Outgoing: "+outputMessage.toString());
+                            outputMessage.setHeader(MessageTemplates.getDefaultHeader());
+                            template.convertAndSendToUser(principal.getName(), "/queue/reply", outputMessage);
+                            return outputMessage;
+                        }
                         //get new Token from the UserManager - SessionToken for Websocket connection
                         //String token = "{\"sessionToken\":\""+UserManager.getUserToken(principal)+"\"}";
                         JSONObject jsonObject = new JSONObject();

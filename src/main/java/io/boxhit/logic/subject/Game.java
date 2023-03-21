@@ -125,8 +125,8 @@ public class Game {
             Controller.getGameProtectionHandler().setLastMove(p.getPlayerID(), System.currentTimeMillis()+440);
             JSONObject obj = new JSONObject();
             obj.put("playerID", p.getPlayerID());
-            int x = (int) players.get(p).getX();
-            int y = (int) players.get(p).getY();
+            int x = (int) players.get(p).getX(); //read from hashmap
+            int y = (int) players.get(p).getY(); //read from hashmap
             obj.put("x", x);
             obj.put("y", y);
             if(players.get(p).hard){
