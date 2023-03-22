@@ -64,6 +64,7 @@ public class GameInstanceHandler {
         if(game != null){
             Player player = Controller.getPlayerInstanceHandler().getPlayer(playerId);
             if(player == null) return false;
+            if (game.getPlayers().contains(player)) return false;
             player.setCurrentGameID(gameID);
             return game.requestPlayerJoinGame(player);
         }

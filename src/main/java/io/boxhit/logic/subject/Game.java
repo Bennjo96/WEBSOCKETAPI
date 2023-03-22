@@ -3,7 +3,6 @@ package io.boxhit.logic.subject;
 import io.boxhit.logic.Controller;
 import io.boxhit.logic.score.Score;
 import io.boxhit.socket.messages.*;
-import jakarta.websocket.MessageHandler;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -147,7 +146,7 @@ public class Game {
             }
             array.put(obj);
             p.move(x, y);
-            Controller.getGameLogicHandler().checkPlayerMovement(player, this);
+            Controller.getGameLogicHandler().checkPlayerMovement(p, this);
         }
         player.setScore(player.getScore()+players.size());
 
@@ -409,6 +408,7 @@ public class Game {
         for (Player player : players.values()){
             player.setHealth(10);
         }
+        p.setHealth(10);
     }
 
     private synchronized void secondlyCalled(){
