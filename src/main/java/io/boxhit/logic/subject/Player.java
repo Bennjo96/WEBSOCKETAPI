@@ -11,7 +11,8 @@ public class Player {
     public final int ATTACK_RADIUS = 90;
     private State state;
     private int currentGameID;
-    private int health = 10;
+    private int health = MAX_HEALTH;
+    public static int MAX_HEALTH = 10;
 
     /**
      * Create a new Player

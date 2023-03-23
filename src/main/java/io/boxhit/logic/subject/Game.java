@@ -112,6 +112,9 @@ public class Game {
     }
 
     public void executePlayerAttack(Player player){
+
+        if(player.getState() != Player.State.PLAYING) return;
+
         HashMap<Player, Vector2D> players = getPlayersInAttackRadiusOfPlayer(player);
         JSONObject dataInfo = new JSONObject();
         JSONArray arrayInfo = new JSONArray();
@@ -260,6 +263,8 @@ public class Game {
      */
     private void spawnPlayer(Player player) {
         if(randomPlayerPosition(player)){
+            player.setHealth(Player.MAX_HEALTH);
+
             JSONObject data = new JSONObject();
             data.put("playerID", player.getPlayerID());
             data.put("playerName", player.getName());
@@ -276,14 +281,15 @@ public class Game {
      * @param player the player
      */
     private boolean randomPlayerPosition(Player player){
-        player.setPositionX((int) (Math.random() * (MAP_SIZE-20))+10);
-        player.setPositionY((int) (Math.random() * (MAP_SIZE-20))+10);
+        player.setPositionX((int) (Math.random() * (MAP_SIZE-30))+15);
+        player.setPositionY((int) (Math.random() * (MAP_SIZE-30))+15);
         return true;
     }
 
     public void startGame(){
         //change player state to playing
         for(Player player : players.values()){
+            player.setHealth(Player.MAX_HEALTH);
             if(player.getState() == Player.State.WAITING) player.setState(Player.State.PLAYING);
         }
 
