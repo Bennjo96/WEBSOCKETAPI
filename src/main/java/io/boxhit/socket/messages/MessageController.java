@@ -6,6 +6,7 @@ import io.boxhit.socket.database.players.Player;
 import io.boxhit.socket.database.players.PlayerRepository;
 import io.boxhit.socket.database.playlog.PlayLog;
 import io.boxhit.socket.database.playlog.PlayLogRepository;
+import io.boxhit.socket.database.stats.StatsRepository;
 import io.boxhit.socket.users.UserManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,6 +28,9 @@ public class MessageController {
 
     @Autowired
     private PlayLogRepository playLogRepository;
+
+    @Autowired
+    private StatsRepository statsRepository;
 
     @Autowired
     public SimpMessagingTemplate template;
