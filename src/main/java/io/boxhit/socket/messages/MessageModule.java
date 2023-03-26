@@ -12,6 +12,7 @@ public enum MessageModule {
     ACTION_GAME_DATA("gameData"),
     ACTION_JOIN_GAME_OTHER("joinGameOther"),
     ACTION_LEAVE_GAME("leaveGame"),
+    ACTION_LEAVE_FORCED("leaveForced"),
     ACTION_LEAVE_GAME_OTHER("leaveGameOther"),
     ACTION_GAME_INFO_MESSAGE("gameInfoMessage"),
     ACTION_GAME_MOVE("gameMovePlayer"),
@@ -22,7 +23,8 @@ public enum MessageModule {
     ACTION_GAME_PLAYER_DIED("gamePlayerDied"),
     ACTION_GAME_FORCE_START("gameForceStart"),
     ACTION_PLAYLOG_INFO("playlogInfo"),
-    ACTION_PLAYLOG_INFO_REQUEST("playlogInfoRequest");
+    ACTION_PLAYLOG_INFO_REQUEST("playlogInfoRequest"),
+    ACTION_GAME_PLAYER_WON("gamePlayerWon");
 
 
     private String module;

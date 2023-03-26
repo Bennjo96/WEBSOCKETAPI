@@ -1,11 +1,13 @@
 package io.boxhit.logic.subject;
 
 import io.boxhit.logic.Controller;
+import io.boxhit.logic.GameInstanceHandler;
 import io.boxhit.logic.score.Score;
 import io.boxhit.socket.messages.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -74,7 +76,7 @@ public class Game {
         JSONObject data = new JSONObject();
         data.put("playerID", player.getPlayerID());
         broadcastGameEventExcludePlayer(MessageModule.ACTION_LEAVE_GAME_OTHER, data.toString(), player);
-        players.remove(player);
+        players.remove(player.getPlayerID());
     }
 
     /**
@@ -170,6 +172,14 @@ public class Game {
         JSONObject obj = new JSONObject();
         obj.put("playerID", p.getPlayerID());
         broadcastGameEvent(MessageModule.ACTION_GAME_PLAYER_DIED, obj.toString());
+
+        if(!isRunning()) return;
+        ArrayList<Player> alivePlayers = getAlivePlayers();
+        if(alivePlayers.size() == 1){
+            Controller.getGameInstanceHandler().endGame(gameID);
+        }else if(alivePlayers.size() == 0){
+            Controller.getGameInstanceHandler().resetGame(gameID);
+        }
     }
 
     /**
@@ -251,8 +261,8 @@ public class Game {
     public void despawnPlayer(Player player, boolean die){
         if(player.getState() == Player.State.PLAYING){
             if(die) player.setState(Player.State.DEAD);
-            player.setPositionX(-1);
-            player.setPositionY(-1);
+            player.setPositionX(-100);
+            player.setPositionY(-100);
             //broadcastGameEventExcludePlayer(MessageModule.ACTION_DESPAWN_PLAYER, player.getPlayerID(), player);
         }
     }
@@ -281,8 +291,8 @@ public class Game {
      * @param player the player
      */
     private boolean randomPlayerPosition(Player player){
-        player.setPositionX((int) (Math.random() * (MAP_SIZE-30))+15);
-        player.setPositionY((int) (Math.random() * (MAP_SIZE-30))+15);
+        player.setPositionX((int) (Math.random() * (MAP_SIZE-60))+30);
+        player.setPositionY((int) (Math.random() * (MAP_SIZE-60))+30);
         return true;
     }
 
@@ -367,6 +377,7 @@ public class Game {
                 case 0:
                 case 1:
                     infoMessage = "Waiting for players...";
+                    waitUntilStart = 60;
                     break;
                 case 2:
                     infoMessage = "Waiting for players...";
@@ -400,23 +411,6 @@ public class Game {
         }
     }
 
-    private void endGame(){
-        isRunning = false;
-        for(Player player : players.values()){
-            player.setState(Player.State.WAITING);
-        }
-        waitUntilStart = 60;
-        updateInfoMessage();
-    }
-
-    private void winner(Player p){
-        endGame();
-        for (Player player : players.values()){
-            player.setHealth(10);
-        }
-        p.setHealth(10);
-    }
-
     private synchronized void secondlyCalled(){
         if(isRunning) waitUntilStart = -1;
         else{
@@ -426,12 +420,11 @@ public class Game {
             }
         }
 
-        if(players.size() == 0) endGame();
-        if (isRunning){
-            if (getAlivePlayers().size() == 1){
-                winner(getAlivePlayers().get(0));
-            }
-        }
+        //if (isRunning){
+        //    if (getAlivePlayers().size() == 1){
+        //        winner(getAlivePlayers().get(0));
+        //    }
+        //}
 
 
         //send game Info Message

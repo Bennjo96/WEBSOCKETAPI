@@ -1,11 +1,14 @@
 package io.boxhit.logic;
 
+import io.boxhit.logic.score.Score;
 import io.boxhit.logic.subject.Game;
 import io.boxhit.logic.subject.Player;
 import io.boxhit.socket.messages.MessageModule;
 import jakarta.annotation.Nullable;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
@@ -58,9 +61,45 @@ public class GameInstanceHandler {
     public void endGame(int gameID){
         Game game = getGame(gameID);
         if(game != null && game.isRunning()){
+            ArrayList<Player> players = game.getAlivePlayers();
+            boolean winScore = false;
+            if(players.size() == 1) winScore = true;
+            String winnerId = "";
+
+            for(Player winner : players){
+                if(winScore) winner.setScore(winner.getScore() + Score.WIN.getScore());
+                winnerId = winner.getPlayerID();
+            }
+
+            JSONObject jsonObject = new JSONObject();
+            if(winScore) {
+                jsonObject.put("playerId", winnerId);
+                game.broadcastGameEvent(MessageModule.ACTION_GAME_PLAYER_WON, jsonObject.toString());
+            }else{
+                jsonObject.put("playerId", "NULL");
+                game.broadcastGameEvent(MessageModule.ACTION_GAME_PLAYER_WON, jsonObject.toString());
+            }
+        }
+
+        //timer for 10 seconds
+        Timer timer = new Timer();
+        timer.schedule(new java.util.TimerTask() {
+            @Override
+            public void run() {
+                resetGame(gameID);
+            }
+        }, 10000);
+
+    }
+
+    public void resetGame(int gameID){
+        Game game = getGame(gameID);
+        if(game != null){
+            game.broadcastGameEvent(MessageModule.ACTION_LEAVE_FORCED, new JSONObject().toString());
             game.setRunning(false);
         }
     }
+
 
     public boolean requestPlayerJoinGame(String playerId, int gameID){
         Game game = getGame(gameID);

@@ -196,14 +196,16 @@ public class MessageController {
                         return null;
                     case ACTION_LEAVE_GAME:
                         //player leaves game
+                        System.out.println("Player leaves game");
                         Controller.getGameProtectionHandler().setLastDisconnect(principal.getName(), System.currentTimeMillis());
                         io.boxhit.logic.subject.Player player2 = Controller.getPlayerInstanceHandler().getPlayer(principal.getName());
                         int maxPlayers = 0;
                         if(player2 != null){
+                            System.out.println("Player2 is not null");
                             Player player1 = playerRepository.findPlayerByUsername(player2.getName());
                             int gameId1 = player2.getCurrentGameID();
                             if(gameId1 != -1) {
-
+                                System.out.println("GameId1 is not -1");
                                 Game game = Controller.getGameInstanceHandler().getGame(gameId1);
                                 maxPlayers = game.maxPlayersInGame;
                                 Controller.getGameInstanceHandler().leaveGame(player2, gameId1);
@@ -214,6 +216,7 @@ public class MessageController {
                                 pl.setScore(player2.getScore());
                                 pl.setUserid(player1.getId());
                                 playLogRepository.insertPlayLog(pl);
+                                System.out.println("Playlog inserted");
                             }
                         }
                         return null;
