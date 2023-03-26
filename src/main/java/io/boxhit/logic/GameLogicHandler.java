@@ -15,7 +15,8 @@ public class GameLogicHandler {
         if(player.getState() == Player.State.PLAYING){
             int x = player.getPositionX();
             int y = player.getPositionY();
-            if(x < -5 || x > MAP_SIZE+5 || y < -5 || y > MAP_SIZE+5){
+            System.out.println("Checking player positions: "+player.getName()+ " x:"+x+" y:"+y);
+            if(x < -3 || x > MAP_SIZE+3 || y < -3 || y > MAP_SIZE+3){
                 player.setState(Player.State.DEAD);
                 player.setScore(player.getScore()+Score.DEATH.getScore());
 

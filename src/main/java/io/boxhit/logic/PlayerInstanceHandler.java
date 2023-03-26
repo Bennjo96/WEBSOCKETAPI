@@ -25,6 +25,13 @@ public class PlayerInstanceHandler {
         return true;
     }
 
+    public boolean isAlreadyRegistered(String playerID){
+        for(Player player: players){
+            if(player.getPlayerID() == playerID) return true;
+        }
+        return false;
+    }
+
     public boolean prepareUnregisterPlayer(String playerID) {
         Player player = getPlayer(playerID);
         if(player == null) return false;
