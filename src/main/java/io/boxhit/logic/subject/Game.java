@@ -108,8 +108,9 @@ public class Game {
     public ArrayList<Player> getAlivePlayers() {
         ArrayList<Player> alivePlayers = new ArrayList<>();
         for (Player player : players.values()) {
-            if (player.getState() == Player.State.PLAYING) addPlayer(player);
+            if (player.getState() == Player.State.PLAYING) alivePlayers.add(player);
         }
+        System.out.println("Alive players: " + alivePlayers.size());
         return alivePlayers;
     }
 
@@ -176,8 +177,10 @@ public class Game {
         if(!isRunning()) return;
         ArrayList<Player> alivePlayers = getAlivePlayers();
         if(alivePlayers.size() == 1){
+            System.out.println("Game " + gameID + " has only one player left. Ending game...");
             Controller.getGameInstanceHandler().endGame(gameID);
         }else if(alivePlayers.size() == 0){
+            System.out.println("Game " + gameID + " has no players left. Resetting game...");
             Controller.getGameInstanceHandler().resetGame(gameID);
         }
     }
