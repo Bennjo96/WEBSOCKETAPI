@@ -24,9 +24,12 @@ public class GameInstanceHandler {
      */
     public GameInstanceHandler() {
         this.games = new HashMap<>();
-        games.put(1, new Game(1, false, "cooler Server"));
-        games.put(2, new Game(2, false, "Hexle Server"));
-        games.put(3, new Game(3, false, "BrosMC Server"));
+        games.put(1, new Game(1, false, "Server 1"));
+        games.put(2, new Game(2, false, "Server 2"));
+        games.put(3, new Game(3, false, "Server 3"));
+        games.put(4, new Game(4, false, "Server 4"));
+        games.put(5, new Game(5, false, "Server 5"));
+        games.put(6, new Game(6, false, "Server 6"));
     }
 
     /**
