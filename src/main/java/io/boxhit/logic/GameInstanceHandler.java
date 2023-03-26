@@ -67,8 +67,20 @@ public class GameInstanceHandler {
             String winnerId = "";
 
             for(Player winner : players){
-                if(winScore) winner.setScore(winner.getScore() + Score.WIN.getScore());
+                if(winScore) winner.addScore(Score.WIN.getScore());
                 winnerId = winner.getPlayerID();
+
+                JSONObject dataInfo = new JSONObject();
+                JSONArray arrayInfo = new JSONArray();
+
+                JSONObject obj = new JSONObject();
+                obj.put("playerID", winner.getPlayerID());
+                obj.put("score", winner.getScore());
+                obj.put("health", winner.getHealth());
+                arrayInfo.put(obj);
+                dataInfo.put("players", arrayInfo);
+                game.broadcastGameEvent(MessageModule.ACTION_GAME_SCORE_HEALTH, dataInfo.toString());
+
             }
 
             JSONObject jsonObject = new JSONObject();
@@ -96,7 +108,16 @@ public class GameInstanceHandler {
         Game game = getGame(gameID);
         if(game != null){
             game.broadcastGameEvent(MessageModule.ACTION_LEAVE_FORCED, new JSONObject().toString());
-            game.setRunning(false);
+
+
+            Timer timer = new Timer();
+            timer.schedule(new java.util.TimerTask() {
+                @Override
+                public void run() {
+                    game.setRunning(false);
+                }
+            }, 1000);
+
         }
     }
 

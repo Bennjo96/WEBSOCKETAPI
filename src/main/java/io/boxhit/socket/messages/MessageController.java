@@ -6,6 +6,7 @@ import io.boxhit.socket.database.players.Player;
 import io.boxhit.socket.database.players.PlayerRepository;
 import io.boxhit.socket.database.playlog.PlayLog;
 import io.boxhit.socket.database.playlog.PlayLogRepository;
+import io.boxhit.socket.database.stats.Stats;
 import io.boxhit.socket.database.stats.StatsRepository;
 import io.boxhit.socket.users.UserManager;
 import org.json.JSONArray;
@@ -117,6 +118,7 @@ public class MessageController {
                         outputMessage.setJson(Controller.getGameInstanceHandler().getGameListJson());
                         //System.out.println("Outgoing: "+outputMessage.toString());
                         template.convertAndSendToUser(username, "/queue/reply", outputMessage);
+                        Controller.checkServer();
                         return null;
                     case ACTION_PLAYLOG_INFO_REQUEST:
                         OutputMessage outputMessage2 = new OutputMessage().setModule(MessageModule.ACTION_PLAYLOG_INFO.getModule());
@@ -127,7 +129,7 @@ public class MessageController {
                         System.out.println("Token: "+token);
                         //String token = UserManager.getUserToken(principal);
 
-                        List<PlayLog> playLogs = playLogRepository.getPlayLogFromPlayerId(5L);
+                        List<PlayLog> playLogs = playLogRepository.getPlayLogFromPlayerId(playerRepository.findPlayerBySessionToken(token).getId());
 
                         JSONArray jsonArray = new JSONArray();
                         for(PlayLog playLog : playLogs){
@@ -213,6 +215,17 @@ public class MessageController {
                                 pl.setScore(player2.getScore());
                                 pl.setUserid(player1.getId());
                                 playLogRepository.insertPlayLog(pl);
+
+                                if(!statsRepository.existsByUserid(player1.getId())){
+                                    Stats stats = new Stats();
+                                    stats.setUserid(player1.getId());
+                                    stats.setScore(0);
+                                    statsRepository.upsert(stats);
+                                }
+
+                                Stats stats = statsRepository.getStatsFromPlayerId(player1.getId());
+                                stats.setScore(stats.getScore()+player2.getScore());
+                                statsRepository.upsert(stats);
                             }
                         }
                         return null;

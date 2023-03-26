@@ -139,7 +139,7 @@ public class Game {
 
                 if(p.getHealth() <= 0){
                     p.setState(Player.State.DEAD);
-                    p.setScore(p.getScore() - Score.DEATH.getScore());
+                    p.removeScore(Score.DEATH.getScore());
                     p.setHealth(0);
                     dyingPlayers.add(p);
                 }
@@ -154,7 +154,7 @@ public class Game {
             p.move(x, y);
             Controller.getGameLogicHandler().checkPlayerMovement(p, this);
         }
-        player.setScore(player.getScore()+players.size());
+        player.addScore(players.size());
 
         data.put("players", array);
         data.put("attacker", player.getPlayerID());
@@ -163,6 +163,17 @@ public class Game {
 
         dataInfo.put("players", arrayInfo);
         broadcastGameEvent(MessageModule.ACTION_GAME_SCORE_HEALTH, dataInfo.toString());
+
+        JSONObject dataInfo1 = new JSONObject();
+        JSONArray arrayInfo1 = new JSONArray();
+
+        JSONObject obj = new JSONObject();
+        obj.put("playerID", player.getPlayerID());
+        obj.put("score", player.getScore());
+        obj.put("health", player.getHealth());
+        arrayInfo1.put(obj);
+        dataInfo1.put("players", arrayInfo1);
+        broadcastGameEvent(MessageModule.ACTION_GAME_SCORE_HEALTH, dataInfo1.toString());
 
         for(Player p : dyingPlayers){
             playerDies(p);
@@ -259,6 +270,16 @@ public class Game {
         despawnPlayer(player, (player.getState() == Player.State.WAITING));
         removePlayer(player);
         updateInfoMessage();
+
+        if(!isRunning()) return;
+        ArrayList<Player> alivePlayers = getAlivePlayers();
+        if(alivePlayers.size() == 1){
+            System.out.println("Game " + gameID + " has only one player left. Ending game...");
+            Controller.getGameInstanceHandler().endGame(gameID);
+        }else if(alivePlayers.size() == 0){
+            System.out.println("Game " + gameID + " has no players left. Resetting game...");
+            Controller.getGameInstanceHandler().resetGame(gameID);
+        }
     }
 
     public void despawnPlayer(Player player, boolean die){
@@ -311,6 +332,7 @@ public class Game {
     public boolean requestPlayerJoinGame(Player player){
         if(isRunning) return false;
         if(players.size() >= MAX_PLAYERS) return false;
+        player.setScore(0);
         player.setState(Player.State.JOINING);
         addPlayer(player);
         spawnPlayer(player);

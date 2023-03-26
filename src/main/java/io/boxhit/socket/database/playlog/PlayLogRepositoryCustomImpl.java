@@ -23,12 +23,14 @@ public class PlayLogRepositoryCustomImpl implements PlayLogRepositoryCustom {
     @Override
     public List<PlayLog> getPlayLogFromPlayerId(Long playerId) {
         List<PlayLog> playLogs = new ArrayList<>();
-        System.out.println("PlayLogRepositoryCustomImpl.getPlayLogFromPlayerId()");
+        System.out.println("PlayLogRepositoryCustomImpl.getPlayLogFromPlayerId() "+playerId);
 
         entityManager.createNativeQuery("SELECT * FROM playlog WHERE userid = :userid ORDER BY lastplayed DESC", PlayLog.class)
                 .setParameter("userid", playerId)
                 .getResultList()
-                .forEach(playLog -> playLogs.add((PlayLog) playLog));
+                .forEach(playLog ->
+                        playLogs.add((PlayLog) playLog)
+                );
 
         System.out.println("PlayLogRepositoryCustomImpl.getPlayLogFromPlayerId() playLogs.size() = " + playLogs.size());
 

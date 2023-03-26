@@ -56,4 +56,14 @@ public class StatsRepositoryCustomImpl implements StatsRepositoryCustom {
                 .setParameter("score", stats.getScore())
                 .executeUpdate();
     }
+
+    @Override
+    public Stats getStatsFromPlayerId(Long playerId) {
+        System.out.println("StatsRepositoryCustomImpl.getStatsFromPlayerId()");
+
+        Stats stat = (Stats) entityManager.createNativeQuery("SELECT * FROM stats WHERE userid = :userid", Stats.class)
+                .setParameter("userid", playerId)
+                .getSingleResult();
+        return stat;
+    }
 }

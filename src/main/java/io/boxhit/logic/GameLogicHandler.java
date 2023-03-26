@@ -18,7 +18,7 @@ public class GameLogicHandler {
             System.out.println("Checking player positions: "+player.getName()+ " x:"+x+" y:"+y);
             if(x < -3 || x > MAP_SIZE+3 || y < -3 || y > MAP_SIZE+3){
                 player.setState(Player.State.DEAD);
-                player.setScore(player.getScore()+Score.DEATH.getScore());
+                player.addScore(Score.DEATH.getScore());
 
                 JSONObject dataInfo = new JSONObject();
                 JSONArray arrayInfo = new JSONArray();

@@ -92,6 +92,14 @@ public class Player {
         this.score = score;
     }
 
+    public void addScore(int score) {
+        this.score += Integer.valueOf(score);
+    }
+
+    public void removeScore(int score) {
+        this.score -= Integer.valueOf(score);
+    }
+
     /**
      * Set the player's x position
      * @param positionX the new x position

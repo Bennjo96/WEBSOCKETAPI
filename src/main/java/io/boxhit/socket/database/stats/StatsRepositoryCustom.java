@@ -12,4 +12,6 @@ public interface StatsRepositoryCustom {
 
     void upsert(Stats stats);
 
+    Stats getStatsFromPlayerId(Long playerId);
+
 }
